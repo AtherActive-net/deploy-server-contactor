@@ -1,6 +1,6 @@
 import express from 'express'
 import { APIError } from '../lib/Error.js';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 
@@ -53,25 +53,17 @@ router.post('/deploy', async (req, res) => {
     const token = req['token'];
     const targetProject = req.body.project;
     const branch = req.body.branch;
+    const repoCloneUrl = req.body.repoCloneUrl;
 
     let command = ''
-    if(fs.existsSync(`/home/${os.userInfo().homedir}/projects/${targetProject}`)) {
-        command = `cd /home/${os.userInfo().homedir}/projects${targetProject} && git pull origin ${branch} && docker-compose down && docker-compose up -d`
+    if(fs.existsSync(`${os.userInfo().homedir}/projects/${targetProject}`)) {
+        command = `cd ${os.userInfo().homedir}/projects/${targetProject} && git pull origin ${branch} && docker-compose down && docker-compose up -d`
     }
     else {
-        command = `cd /home/${os.userInfo().homedir}/projects && git clone && cd ${targetProject} && git checkout ${branch} && docker-compose up -d`
+        command = `cd ${os.userInfo().homedir}/projects && git clone ${repoCloneUrl} && cd ${targetProject} && git checkout ${branch} && docker-compose up -d`
     }
     // Run the cmd command
     exec(command, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
+        return res.status(200).json({output:stdout, error:error, stderr:stderr})
     });
-
 })
