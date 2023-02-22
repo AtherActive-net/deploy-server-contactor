@@ -57,10 +57,23 @@ router.post('/deploy', async (req, res) => {
 
     let command = ''
     if(fs.existsSync(`${os.userInfo().homedir}/projects/${targetProject}`)) {
-        command = `cd ${os.userInfo().homedir}/projects/${targetProject} && git pull origin ${branch} && docker-compose down && docker-compose up -d`
+
+        command = `
+            cd ${os.userInfo().homedir}/projects/${targetProject} && 
+            git pull origin ${branch} && 
+            docker-compose kill -s SIGINT && 
+            docker-compose rm -f && 
+            docker-compose build && 
+            docker-compose up --detach
+        `
     }
     else {
-        command = `cd ${os.userInfo().homedir}/projects && git clone ${repoCloneUrl} && cd ${targetProject} && git checkout ${branch} && docker-compose up -d`
+        command = `
+            cd ${os.userInfo().homedir}/projects && 
+            git clone ${repoCloneUrl} && 
+            cd ${targetProject} && 
+            git checkout ${branch} && 
+            docker-compose up --detach`
     }
     // Run the cmd command
     exec(command, (error, stdout, stderr) => {
