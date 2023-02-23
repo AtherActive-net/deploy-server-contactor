@@ -54,6 +54,9 @@ router.post('/deploy', async (req, res) => {
     const targetProject = req.body.project;
     const branch = req.body.branch;
     const repoCloneUrl = req.body.repoCloneUrl;
+    const ENV = req.body.ENV;
+
+    const envProcessed = loadEnvVar(ENV);
 
     let command = ''
     if(fs.existsSync(`${os.userInfo().homedir}/projects/${targetProject}`)) {
@@ -61,6 +64,8 @@ router.post('/deploy', async (req, res) => {
         command = `
             cd ${os.userInfo().homedir}/projects/${targetProject} && 
             git pull origin ${branch} && 
+            touch .env &&
+            echo '${envProcessed}' > .env &&
             docker-compose kill -s SIGINT && 
             docker-compose rm -f && 
             docker-compose build && 
@@ -73,6 +78,8 @@ router.post('/deploy', async (req, res) => {
             git clone ${repoCloneUrl} && 
             cd ${targetProject} && 
             git checkout ${branch} && 
+            touch .env &&
+            echo '${envProcessed}' > .env &&
             docker-compose up --detach`
     }
     // Run the cmd command
@@ -80,3 +87,14 @@ router.post('/deploy', async (req, res) => {
         return res.status(200).json({output:stdout, error:error, stderr:stderr})
     });
 })
+
+function loadEnvVar(vars) {
+    if(!vars) return '';
+    let out = ``
+
+    Object.keys(vars).forEach(item => {
+        out+=`${item}=${vars[item]}\n`
+    })
+
+    return out;
+}
