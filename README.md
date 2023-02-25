@@ -34,7 +34,7 @@ Setup is pretty easy, but we will go through it anyway! Please note, this server
 There are some obvious dependencies here, which are `docker` and `docker-compose`. `node 16.x+` is also required. Finally, an SQL database is a good idea for your tokens. The default token is called `default` and will be destroyed the first time you make a valid request to `/api/v1/createtoken`.
 
 ### Downloading
-First off, you will need to download this repository. It's recommended to use the `main` branch for this. Other branches are inteded for development purposes.
+First off, you will need to download teh server. It is recommended to take the `latest` release. You can take a `prerelease` too if you need experimental features.
 
 ### Configuring env vars
 
