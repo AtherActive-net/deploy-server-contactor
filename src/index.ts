@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 import db from './database.js';
+import tokenManager from './lib/tokenManager.js';
 dotenv.config();
 
 const app = express();
@@ -37,4 +38,8 @@ app.listen(process.env.PORT, async () => {
             await import('./models/Token.model.js')
         ]
     })
+
+    if(!await tokenManager.findTokenByOwnerIdentifier("DEFAULT")) {
+        await tokenManager.createDefaultToken();
+    }
 })

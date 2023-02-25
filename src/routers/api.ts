@@ -1,6 +1,7 @@
 import express from 'express'
 import { APIError } from '../lib/Error.js';
 import { exec, execSync } from 'child_process';
+import {v4} from 'uuid'
 import fs from 'fs';
 import os from 'os';
 
@@ -40,6 +41,9 @@ router.post('/createtoken', async (req, res) => {
 
     const token = await tokenManager.createToken(req.body.ownerIdentifier, req['token'])
     if(token instanceof APIError) return handleApiError(req, res, token)
+
+    if(req['token'].token == "default") (req['token'] as Token).update({token: v4()})
+
     return res.json({token: token})
 })
 

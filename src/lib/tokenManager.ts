@@ -35,7 +35,29 @@ class TokenManager {
         return tok;
     }
 
-    
+    /**
+     * Initialize the default token
+     * @returns {Token} The default token
+     */
+    async createDefaultToken():Promise<Token|APIError> {
+        const tok = await Token.create({
+            ownerIdentifier: "DEFAULT",
+            token: 'default',
+        })
+
+        return tok;
+    }
+
+    /**
+     * Find a token by the ownerIdentifier
+     * @param ownerIdentifier The ownerIdentifier of the token
+     * @returns {Token|false} Either the token or false
+     */
+    async findTokenByOwnerIdentifier(ownerIdentifier:string):Promise<Token|false> {
+        const tok = await Token.findOne({where: {ownerIdentifier: ownerIdentifier}})
+        if(!tok) return false;
+        return tok;
+    }
 }
 
 
