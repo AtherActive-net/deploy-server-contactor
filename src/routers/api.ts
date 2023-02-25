@@ -44,7 +44,7 @@ router.post('/createtoken', async (req, res) => {
 })
 
 router.get('/token', async (req, res) => {
-    const token = await tokenManager.getToken(req.body.token)
+    const token = await tokenManager.getToken(req['token'].token)
     if(token instanceof APIError) return handleApiError(req, res, token)
     return res.json({token: token})
 })
