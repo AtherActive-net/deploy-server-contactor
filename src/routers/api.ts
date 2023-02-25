@@ -54,16 +54,50 @@ router.post('/deploy', async (req, res) => {
     const targetProject = req.body.project;
     const branch = req.body.branch;
     const repoCloneUrl = req.body.repoCloneUrl;
+    const ENV = req.body.ENV;
 
+    if(!targetProject || !branch || !repoCloneUrl) {
+        return res.status(400).json({error: "Missing parameters"})
+    }
+
+    const envProcessed = loadEnvVar(ENV);
     let command = ''
     if(fs.existsSync(`${os.userInfo().homedir}/projects/${targetProject}`)) {
-        command = `cd ${os.userInfo().homedir}/projects/${targetProject} && git pull origin ${branch} && docker-compose down && docker-compose up -d`
+
+        command = `
+            cd ${os.userInfo().homedir}/projects/${targetProject} && 
+            git pull origin ${branch} && 
+            touch .env &&
+            echo "${envProcessed}" > .env &&
+            docker-compose kill -s SIGINT && 
+            docker-compose rm -f && 
+            docker-compose build && 
+            docker-compose up --detach
+        `
     }
     else {
-        command = `cd ${os.userInfo().homedir}/projects && git clone ${repoCloneUrl} && cd ${targetProject} && git checkout ${branch} && docker-compose up -d`
+        command = `
+            cd ${os.userInfo().homedir}/projects && 
+            git clone ${repoCloneUrl} && 
+            cd ${targetProject} && 
+            git checkout ${branch} && 
+            touch .env &&
+            echo "${envProcessed}" > .env &&
+            docker-compose up --detach`
     }
     // Run the cmd command
     exec(command, (error, stdout, stderr) => {
         return res.status(200).json({output:stdout, error:error, stderr:stderr})
     });
 })
+
+function loadEnvVar(vars) {
+    if(!vars) return '';
+    let out = ``
+
+    Object.keys(vars).forEach(item => {
+        out+=`${item}=${vars[item]}\n`
+    })
+
+    return out;
+}
